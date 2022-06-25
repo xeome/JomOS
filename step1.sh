@@ -6,12 +6,20 @@ MAGENTA="$(printf '\033[35m')" CYAN="$(printf '\033[36m')" WHITE="$(printf '\033
 REDBG="$(printf '\033[41m')" GREENBG="$(printf '\033[42m')" ORANGEBG="$(printf '\033[43m')" BLUEBG="$(printf '\033[44m')"
 MAGENTABG="$(printf '\033[45m')" CYANBG="$(printf '\033[46m')" WHITEBG="$(printf '\033[47m')" BLACKBG="$(printf '\033[40m')"
 
+export color_norm='\033[0m'
+
 #Get username
 username=$(whoami)
 
 ## Reset terminal colors
 reset_color() {
     printf '\033[37m'
+}
+
+abort() {
+    trap '' EXIT
+    printf "${RED}ERROR: %s\\n${color_norm}" "${@}" >&2
+    exit 1
 }
 
 echo $RED
@@ -32,7 +40,16 @@ cat <<EOF
        .......................      │|  
          ..................         │|  Continuing will:
               ........              │|  - Convert existing installation into JomOS
+
 EOF
+echo "Please type \"Confirm\" without quotes at the prompt to continue:"
+
+read -r line
+if [ "${line}" != "Confirm" ]; then
+    abort "Warning not copied exactly."
+fi
+
+echo "Starting installation"
 
 reset_color
 yay -S zram-generator irqbalance timeshift-bin zsh vim
