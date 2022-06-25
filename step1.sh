@@ -52,7 +52,7 @@ fi
 echo "Starting installation"
 
 reset_color
-yay -S zram-generator irqbalance timeshift-bin zsh vim
+yay -S --noconfirm zram-generator irqbalance timeshift-bin zsh vim
 sudo mv ./etc/* /etc/
 
 tar --use-compress-program=unzstd -xvf themes.tar.zst
