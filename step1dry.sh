@@ -13,13 +13,13 @@ username=$(whoami)
 
 ## Reset terminal colors
 reset_color() {
-  printf '\033[37m'
+    printf '\033[37m'
 }
 
 abort() {
-  trap '' EXIT
-  printf "${RED}ERROR: %s\\n${color_norm}" "${@}" >&2
-  exit 1
+    trap '' EXIT
+    printf "${RED}ERROR: %s\\n${color_norm}" "${@}" >&2
+    exit 1
 }
 
 echo $RED
@@ -42,26 +42,12 @@ cat <<EOF
               ........              │|  - Convert existing installation into JomOS
 
 EOF
-echo "Please type \"Confirm\" without quotes at the prompt to continue:"
-
-read -r line
-if [ "${line}" != "Confirm" ]; then
-  abort "Warning not copied exactly."
-fi
 
 echo "Starting installation"
 
 physmem=$(awk '/MemTotal/{print $2}' /proc/meminfo)
-physmemg=$(($physmem / 1048576))
-swappiness=$((200 / $physmem))
-vfscachepressure=$((($swappiness * 2) < 150 ? ($swappiness * 2) : 150))
-
-reset_color
-yay -S --noconfirm zram-generator irqbalance timeshift-bin zsh vim
-sudo mv ./etc/* /etc/
-
-tar --use-compress-program=unzstd -xvf themes.tar.zst
-mkdir ~/.themes
-mv ./themes/* ~/.themes
-xfconf-query -c xsettings -p /Net/ThemeName -s "Fluent-dark"
-xfconf-query -c xfwm4 -p /general/theme -s "Fluent-dark"
+physmemg=1 #$(($physmem / 1048576))
+swappinessraw=$((400 / $physmemg))
+#swappiness=$((  ))
+vfscachepressureraw=$(($swappiness * 2))
+echo $swappiness
