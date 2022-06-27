@@ -1,5 +1,6 @@
 import os
 import re
+import sys
 
 HEADER = "\033[95m"
 OKBLUE = "\033[94m"
@@ -11,6 +12,22 @@ ENDC = "\033[0m"
 BOLD = "\033[1m"
 UNDERLINE = "\033[4m"
 
+DRYRUN = 1
+
+
+def exec(str):
+    return os.popen(str).read()
+
+
+COMMANDLIST = [
+    "yay -S --noconfirm zram-generator irqbalance timeshift-bin zsh vim",
+    "sudo install -o root -g root -m 644 ./etc/* /etc/",
+    "tar --use-compress-program=unzstd -xvf themes.tar.zst",
+    "mkdir ~/.themes",
+    "cp ./themes/* ~/.themes",
+    'xfconf-query -c xsettings -p /Net/ThemeName -s "Fluent-dark"',
+    'xfconf-query -c xfwm4 -p /general/theme -s "Fluent-dark"',
+]
 
 text = """
               ........              │|      JomOS alpha 0.1                                                     
@@ -31,13 +48,24 @@ text = """
               ........              │|  - Convert existing installation into JomOS
 """
 
-USERNAME = os.popen("whoami").read()
-PHYSMEMRAW = os.popen("grep MemTotal /proc/meminfo").read()
+confirmation = input(
+    'Please type "Confirm" without quotes at the prompt to continue: \n'
+)
 
-PHYSMEMGB = 16  # int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
+if confirmation != "Confirm":
+    print("Warning not copied exactly.")
+    sys.exit()
+
+USERNAME = exec("whoami")
+PHYSMEMRAW = exec("grep MemTotal /proc/meminfo")
+
+PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
+# get ram amount in kb and convert to gb with floor division
+
 SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
 VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
 
-print(SWAPPINESS)
-print(VFSCACHEPRESSURE)
 # TODO: for loop running all commands from a list
+if DRYRUN != 1:
+    for command in COMMANDLIST:
+        exec(command)
