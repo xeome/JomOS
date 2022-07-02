@@ -19,9 +19,21 @@ def exec(str):
     return os.popen(str).read()
 
 
+def installdir(input, target, flags):
+    exec(
+        "find "
+        + input
+        + " -type f -exec install "
+        + flags
+        + ' "{}" "'
+        + target
+        + '{}" \;'
+    )
+
+
 COMMANDLIST = [
     "yay -S --noconfirm zram-generator irqbalance timeshift-bin zsh vim",
-    "sudo install -o root -g root -m 644 ./etc/* /etc/",
+    # "sudo install -o root -g root -m 644 ./etc/* /etc/",
     "tar --use-compress-program=unzstd -xvf themes.tar.zst",
     "mkdir ~/.themes",
     "cp ./themes/* ~/.themes",
@@ -67,5 +79,6 @@ VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
 
 # TODO: for loop running all commands from a list
 if DRYRUN != 1:
+    installdir("./etc", "/", "-D -o root -g root -m 644")
     for command in COMMANDLIST:
         exec(command)
