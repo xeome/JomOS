@@ -23,7 +23,7 @@ def installdir(input, target, flags):
     exec(
         "find "
         + input
-        + " -type f -exec install "
+        + " -type f -exec sudo install "
         + flags
         + ' "{}" "'
         + target
@@ -31,14 +31,28 @@ def installdir(input, target, flags):
     )
 
 
+def replaceinfile(filepath, str, sub):
+    # Read in the file
+    with open(filepath, "r") as file:
+        filedata = file.read()
+
+    # Replace the target string
+    filedata = filedata.replace(str, sub)
+
+    # Write the file out again
+    with open(filepath, "w") as file:
+        file.write(filedata)
+
+
 COMMANDLIST = [
     "yay -S --noconfirm zram-generator irqbalance timeshift-bin zsh vim",
     # "sudo install -o root -g root -m 644 ./etc/* /etc/",
     "tar --use-compress-program=unzstd -xvf themes.tar.zst",
     "mkdir ~/.themes",
-    "cp ./themes/* ~/.themes",
+    "cp -r ./themes/* ~/.themes",
     'xfconf-query -c xsettings -p /Net/ThemeName -s "Fluent-dark"',
     'xfconf-query -c xfwm4 -p /general/theme -s "Fluent-dark"',
+    "bash ./chpanelcolor.sh 5 5 5 255",
 ]
 
 text = """
@@ -82,3 +96,8 @@ if DRYRUN != 1:
     installdir("./etc", "/", "-D -o root -g root -m 644")
     for command in COMMANDLIST:
         exec(command)
+    replaceinfile(
+        "/home/" + USERNAME + "/.config/xfce4/panel/",
+        "button-title=EndeavourOS\ \ ",
+        "button-title=JomOS\ \ ",
+    )
