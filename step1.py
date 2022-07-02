@@ -52,7 +52,7 @@ COMMANDLIST = [
     "cp -r ./themes/* ~/.themes",
     'xfconf-query -c xsettings -p /Net/ThemeName -s "Fluent-dark"',
     'xfconf-query -c xfwm4 -p /general/theme -s "Fluent-dark"',
-    "bash ./chpanelcolor.sh 5 5 5 255",
+    "bash ./chpanelcolor.sh 0 0 0 255",
 ]
 
 text = """
@@ -82,7 +82,7 @@ if confirmation != "Confirm":
     print("Warning not copied exactly.")
     sys.exit()
 
-USERNAME = exec("whoami")
+USERNAME = exec("whoami").replace("\n", "")
 PHYSMEMRAW = exec("grep MemTotal /proc/meminfo")
 
 PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
@@ -97,7 +97,7 @@ if DRYRUN != 1:
     for command in COMMANDLIST:
         exec(command)
     replaceinfile(
-        "/home/" + USERNAME + "/.config/xfce4/panel/",
+        "/home/" + USERNAME + "/.config/xfce4/panel/whiskermenu-1.rc",
         "button-title=EndeavourOS\ \ ",
         "button-title=JomOS\ \ ",
     )
