@@ -52,6 +52,8 @@ COMMANDLIST = [
     "cp -r ./themes/* ~/.themes",
     'xfconf-query -c xsettings -p /Net/ThemeName -s "Fluent-dark"',
     'xfconf-query -c xfwm4 -p /general/theme -s "Fluent-dark"',
+    "sudo cp ./wallpaper.png /usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png",
+    "sudo cp ./gigachad_small.png /usr/share/endeavouros/EndeavourOS-icon.png",
     "bash ./chpanelcolor.sh 0 0 0 255",
 ]
 
@@ -73,6 +75,8 @@ text = """
          ..................         │|  Continuing will:
               ........              │|  - Convert existing installation into JomOS
 """
+
+print(text)
 
 confirmation = input(
     'Please type "Confirm" without quotes at the prompt to continue: \n'
@@ -101,3 +105,4 @@ if DRYRUN != 1:
         "button-title=EndeavourOS\ \ ",
         "button-title=JomOS\ \ ",
     )
+    # TODO: replace swappiness and vfs cache pressure values in sysctl.d/99-swappiness
