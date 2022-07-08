@@ -12,7 +12,7 @@ ENDC = "\033[0m"
 BOLD = "\033[1m"
 UNDERLINE = "\033[4m"
 
-DRYRUN = 1
+DRYRUN = 0
 
 
 def exec(str):
@@ -87,6 +87,7 @@ if confirmation != "Confirm":
     sys.exit()
 
 USERNAME = exec("whoami").replace("\n", "")
+HOMEDIR = "/home/" + USERNAME
 PHYSMEMRAW = exec("grep MemTotal /proc/meminfo")
 
 PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
@@ -95,14 +96,23 @@ PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
 SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
 VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
 
+replaceinfile(
+    "./etc/sysctl.d/99-swappiness", "vm.swappiness=50", "vm.swappiness=" + SWAPPINESS
+)
+
+replaceinfile(
+    "./etc/sysctl.d/99-swappiness",
+    "vm.vfs_cache_pressure=50",
+    "vm.vfs_cache_pressure=" + VFSCACHEPRESSURE,
+)
+
 # TODO: for loop running all commands from a list
 if DRYRUN != 1:
     installdir("./etc", "/", "-D -o root -g root -m 644")
     for command in COMMANDLIST:
         exec(command)
     replaceinfile(
-        "/home/" + USERNAME + "/.config/xfce4/panel/whiskermenu-1.rc",
+        HOMEDIR + "/.config/xfce4/panel/whiskermenu-1.rc",
         "button-title=EndeavourOS\ \ ",
         "button-title=JomOS\ \ ",
     )
-    # TODO: replace swappiness and vfs cache pressure values in sysctl.d/99-swappiness
