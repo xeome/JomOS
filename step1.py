@@ -97,13 +97,15 @@ SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
 VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
 
 replaceinfile(
-    "./etc/sysctl.d/99-swappiness", "vm.swappiness=50", "vm.swappiness=" + SWAPPINESS
+    "./etc/sysctl.d/99-swappiness.conf",
+    "vm.swappiness=50",
+    "vm.swappiness=" + str(SWAPPINESS),
 )
 
 replaceinfile(
-    "./etc/sysctl.d/99-swappiness",
+    "./etc/sysctl.d/99-swappiness.conf",
     "vm.vfs_cache_pressure=50",
-    "vm.vfs_cache_pressure=" + VFSCACHEPRESSURE,
+    "vm.vfs_cache_pressure=" + str(VFSCACHEPRESSURE),
 )
 
 # TODO: for loop running all commands from a list
