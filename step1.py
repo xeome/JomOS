@@ -85,8 +85,11 @@ confirmation = input(
 if confirmation != "Confirm":
     print("Warning not copied exactly.")
     sys.exit()
+USERNAME = (
+    "liveuser" if path.exists("/home/liveuser") else exec("whoami").replace("\n", "")
+)
 
-USERNAME = exec("whoami").replace("\n", "")
+# USERNAME = "liveuser"  # exec("whoami").replace("\n", "")
 HOMEDIR = "/home/" + USERNAME
 PHYSMEMRAW = exec("grep MemTotal /proc/meminfo")
 
