@@ -112,6 +112,9 @@ replaceinfile(
     "vm.vfs_cache_pressure=50",
     "vm.vfs_cache_pressure=" + str(VFSCACHEPRESSURE),
 )
+whiskermenupath = exec(
+    "ls " + HOMEDIR + "/.config/xfce4/panel/whiskermenu-*.rc"
+).replace("\n", "")
 
 # TODO: for loop running all commands from a list
 if DRYRUN != 1:
@@ -119,7 +122,7 @@ if DRYRUN != 1:
     for command in COMMANDLIST:
         exec(command)
     replaceinfile(
-        HOMEDIR + "/.config/xfce4/panel/whiskermenu-1.rc",
+        str(whiskermenupath),
         "button-title=EndeavourOS\ \ ",
         "button-title=JomOS\ \ ",
     )
