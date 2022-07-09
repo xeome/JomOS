@@ -1,6 +1,8 @@
 import os
 import re
 import sys
+import os.path
+from os import path
 
 HEADER = "\033[95m"
 OKBLUE = "\033[94m"
