@@ -88,7 +88,8 @@ if confirmation != "Confirm":
     print("Warning not copied exactly.")
     sys.exit()
 USERNAME = (
-    "liveuser" if path.exists("/home/liveuser") else exec("whoami").replace("\n", "")
+    "liveuser" if path.exists(
+        "/home/liveuser") else exec("whoami").replace("\n", "")
 )
 
 # USERNAME = "liveuser"  # exec("whoami").replace("\n", "")
@@ -101,14 +102,11 @@ PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
 SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
 VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
 
-replaceinfile(
-    "./etc/sysctl.d/99-swappiness.conf",
-    "vm.swappiness=50",
-    "vm.swappiness=" + str(SWAPPINESS),
-)
+replaceinfile("./etc/sysctl.d/99-JomOS-settings.conf",
+              "vm.swappiness=50", "vm.swappiness=" + str(SWAPPINESS),)
 
 replaceinfile(
-    "./etc/sysctl.d/99-swappiness.conf",
+    "./etc/sysctl.d/99-JomOS-settings.conf",
     "vm.vfs_cache_pressure=50",
     "vm.vfs_cache_pressure=" + str(VFSCACHEPRESSURE),
 )
@@ -123,6 +121,6 @@ if DRYRUN != 1:
         exec(command)
     replaceinfile(
         str(whiskermenupath),
-        "button-title=EndeavourOS\ \ ",
-        "button-title=JomOS\ \ ",
+        "button-title=EndeavourOS",
+        "button-title=JomOS",
     )
