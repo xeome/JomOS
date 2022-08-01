@@ -116,12 +116,7 @@ replaceinfile("./etc/sysctl.d/99-JomOS-settings.conf",
 try:
     replaceinfile(
         "./etc/makepkg.conf",
-        "MAKEFLAGS=\"-j2\"",
-        "MAKEFLAGS=\"-j$(nproc)\""
-    )
-    replaceinfile(
-        "./etc/makepkg.conf",
-        "#MAKEFLAGS=\"-j$(nproc)\"",
+        "#MAKEFLAGS=\"-j2\"",
         "MAKEFLAGS=\"-j$(nproc)\""
     )
 except:
