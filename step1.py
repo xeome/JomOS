@@ -50,13 +50,13 @@ def replaceinfile(filepath, str, sub):
 COMMANDLIST = [
     "yay -S --noconfirm zram-generator irqbalance timeshift-bin zsh vim",
     # "sudo install -o root -g root -m 644 ./etc/* /etc/",
-    "tar --use-compress-program=unzstd -xvf themes.tar.zst",
+    "tar --use-compress-program=unzstd -xvf ./assets/themes.tar.zst",
     "mkdir ~/.themes",
     "cp -r ./themes/* ~/.themes",
     'xfconf-query -c xsettings -p /Net/ThemeName -s "Fluent-dark"',
     'xfconf-query -c xfwm4 -p /general/theme -s "Fluent-dark"',
-    "sudo cp ./wallpaper.png /usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png",
-    "sudo cp ./gigachad_small.png /usr/share/endeavouros/EndeavourOS-icon.png",
+    "sudo cp ./assets/wallpaper.png /usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png",
+    "sudo cp ./assets/gigachad_small.png /usr/share/endeavouros/EndeavourOS-icon.png",
     "bash ./chpanelcolor.sh 0 0 0 255",
 ]
 
