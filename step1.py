@@ -1,3 +1,4 @@
+from dataclasses import replace
 import os
 import re
 import sys
@@ -102,23 +103,46 @@ PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
 SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
 VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
 
+whiskermenupath = exec(
+    "ls " + HOMEDIR + "/.config/xfce4/panel/whiskermenu-*.rc").replace("\n", "")
+
+# Copy system makepkg.conf for necessary modifications
+exec("cp /etc/makepkg.conf ./etc/makepkg.conf")
+
 replaceinfile("./etc/sysctl.d/99-JomOS-settings.conf",
-              "vm.swappiness=50", "vm.swappiness=" + str(SWAPPINESS),)
+              "vm.swappiness = 50",
+              "vm.swappiness = " + str(SWAPPINESS)
+              )
+try:
+    replaceinfile(
+        "./etc/makepkg.conf",
+        "MAKEFLAGS=\"-j2\"",
+        "MAKEFLAGS=\"-j$(nproc)\""
+    )
+    replaceinfile(
+        "./etc/makepkg.conf",
+        "#MAKEFLAGS=\"-j$(nproc)\"",
+        "MAKEFLAGS=\"-j$(nproc)\""
+    )
+except:
+    # TODO: proper error handling
+    print("idk how to handle errors in python yet")
+
 
 replaceinfile(
     "./etc/sysctl.d/99-JomOS-settings.conf",
-    "vm.vfs_cache_pressure=50",
-    "vm.vfs_cache_pressure=" + str(VFSCACHEPRESSURE),
+    "vm.vfs_cache_pressure = 50",
+    "vm.vfs_cache_pressure = " + str(VFSCACHEPRESSURE),
 )
-whiskermenupath = exec(
-    "ls " + HOMEDIR + "/.config/xfce4/panel/whiskermenu-*.rc"
-).replace("\n", "")
 
 # TODO: for loop running all commands from a list
 if DRYRUN != 1:
+
     installdir("./etc", "/", "-D -o root -g root -m 644")
+
     for command in COMMANDLIST:
         exec(command)
+
     replaceinfile(
         str(whiskermenupath),
         "button-title=EndeavourOS",
