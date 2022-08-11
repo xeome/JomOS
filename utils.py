@@ -1,14 +1,14 @@
 import os
 
 
-def exec(str):
+def term(str):
     """execute a terminal command"""
     return os.popen(str).read()
 
 
 def installdir(input, target, flags):
     """install a directory with necessary permissions"""
-    exec(
+    term(
         "find "
         + input
         + " -type f -exec sudo install "

@@ -6,11 +6,11 @@ import utils
 
 USERNAME = (
     "liveuser" if os.path.exists(
-        "/home/liveuser") else utils.exec("whoami").replace("\n", "")
+        "/home/liveuser") else utils.term("whoami").replace("\n", "")
 )
 
 HOMEDIR = "/home/" + USERNAME
-PHYSMEMRAW = utils.exec("grep MemTotal /proc/meminfo")
+PHYSMEMRAW = utils.term("grep MemTotal /proc/meminfo")
 
 PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
 # get ram amount in kb and convert to gb with floor division
@@ -62,7 +62,7 @@ if confirmation != "Confirm":
     sys.exit()
 
 
-whiskermenupath = utils.exec(
+whiskermenupath = utils.term(
     "ls " + HOMEDIR + "/.config/xfce4/panel/whiskermenu-*.rc").replace("\n", "")
 
 # Copy system makepkg.conf for necessary modifications
@@ -97,7 +97,7 @@ if DRYRUN != 1:
     utils.installdir("./etc", "/", "-D -o root -g root -m 644")
 
     for command in COMMANDLIST:
-        utils.exec(command)
+        utils.term(command)
 
     utils.replaceinfile(
         str(whiskermenupath),
