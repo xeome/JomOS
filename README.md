@@ -1,2 +1,2 @@
-# jomOS
-scripts for conversion to jomOS
+# JomOS
+scripts for conversion to JomOS
