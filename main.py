@@ -18,7 +18,7 @@ PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
 SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
 VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
 
-DRYRUN = 0
+DRYRUN = 1
 
 COMMANDLIST = [
     "yay -S --noconfirm zram-generator irqbalance timeshift-bin zsh vim",
@@ -61,12 +61,18 @@ if confirmation != "Confirm":
     print("Warning not copied exactly.")
     sys.exit()
 
+print(f"""USERNAME: {USERNAME}
+RAM AMOUNT: {PHYSMEMGB}
+CALCULATED SWAPPINESS: {SWAPPINESS}
+CALCULATED VFS_CACHE_PRESSURE: {VFSCACHEPRESSURE}
+""")
+
 
 whiskermenupath = utils.term(
     "ls " + HOMEDIR + "/.config/xfce4/panel/whiskermenu-*.rc").replace("\n", "")
 
 # Copy system makepkg.conf for necessary modifications
-exec("cp /etc/makepkg.conf ./etc/makepkg.conf")
+utils.term("cp /etc/makepkg.conf ./etc/makepkg.conf")
 
 
 # Modify configuration files
@@ -87,17 +93,31 @@ try:
         "vm.vfs_cache_pressure = 50",
         "vm.vfs_cache_pressure = " + str(VFSCACHEPRESSURE),
     )
+
 except Exception:
     # TODO: proper error handling
     print("Error when modifying configurations")
+
+else:
+    print(f"""FILES MODIFIED:
+            /etc/sysctl.d/99-JomOS-settings.conf
+            + vm.swappiness = {SWAPPINESS}
+            + vm.vfs_cache_pressure = {VFSCACHEPRESSURE}
+
+            /etc/makepkg.conf
+            + MAKEFLAGS="-j$(nproc)"
+        """)
 
 
 if DRYRUN != 1:
 
     utils.installdir("./etc", "/", "-D -o root -g root -m 644")
 
+    print("Configs installed")
+
     for command in COMMANDLIST:
         utils.term(command)
+        print("Command executed: " + command)
 
     utils.replaceinfile(
         str(whiskermenupath),
