@@ -3,11 +3,20 @@ import re
 import sys
 import os
 import utils
+import logging
+from rich.logging import RichHandler
+from rich import print
 
-USERNAME = (
-    "liveuser" if os.path.exists(
-        "/home/liveuser") else utils.term("whoami").replace("\n", "")
+
+FORMAT = "%(message)s"
+logging.basicConfig(
+    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
 )
+
+log = logging.getLogger("rich")
+
+USERNAME = ("liveuser" if os.path.exists("/home/liveuser")
+            else utils.term("whoami").replace("\n", ""))
 
 HOMEDIR = "/home/" + USERNAME
 PHYSMEMRAW = utils.term("grep MemTotal /proc/meminfo")
@@ -20,8 +29,10 @@ VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
 
 DRYRUN = 1
 
+# TODO: add check for fstrim timers if ssd
+
 COMMANDLIST = [
-    "yay -S --noconfirm zram-generator irqbalance timeshift-bin zsh vim",
+    "yay -S --noconfirm zram-generator irqbalance",
     "tar --use-compress-program=unzstd -xvf ./assets/themes.tar.zst",
     "mkdir ~/.themes",
     "cp -r ./themes/* ~/.themes",
@@ -47,8 +58,13 @@ ABOUT = """
    .......'lddl::coddl'..........   │|  
      .......,:clllc:,..........     │|  
        .......................      │|  
-         ..................         │|  Continuing will:
-              ........              │|  - Convert existing installation into JomOS
+         ..................         │|  
+              ........              │|
+
+[red]
+Continuing will:
+- Convert existing installation into JomOS
+[/red]
 """
 
 print(ABOUT)
@@ -58,10 +74,10 @@ confirmation = input(
 )
 
 if confirmation != "Confirm":
-    print("Warning not copied exactly.")
+    log.warning("Warning not copied exactly.")
     sys.exit()
 
-print(f"""USERNAME: {USERNAME}
+log.info(f"""USERNAME: "{USERNAME}"
 RAM AMOUNT: {PHYSMEMGB}
 CALCULATED SWAPPINESS: {SWAPPINESS}
 CALCULATED VFS_CACHE_PRESSURE: {VFSCACHEPRESSURE}
@@ -96,10 +112,10 @@ try:
 
 except Exception:
     # TODO: proper error handling
-    print("Error when modifying configurations")
+    log.error("Error when modifying configurations")
 
 else:
-    print(f"""FILES MODIFIED:
+    log.info(f"""FILES MODIFIED:
             /etc/sysctl.d/99-JomOS-settings.conf
             + vm.swappiness = {SWAPPINESS}
             + vm.vfs_cache_pressure = {VFSCACHEPRESSURE}
@@ -113,11 +129,11 @@ if DRYRUN != 1:
 
     utils.installdir("./etc", "/", "-D -o root -g root -m 644")
 
-    print("Configs installed")
+    log.info("Configs installed")
 
     for command in COMMANDLIST:
         utils.term(command)
-        print("Command executed: " + command)
+        log.info("Command executed: " + command)
 
     utils.replaceinfile(
         str(whiskermenupath),
