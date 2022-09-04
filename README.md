@@ -21,3 +21,6 @@ Currently, dryrun is enabled so your system
 - python
 - rich module from pip
 - yay (the aur helper)
+
+## Screenshots
+![JomOS](https://user-images.githubusercontent.com/44901648/188334304-df65457d-b368-44a6-b27f-c02c40e1999d.png)
