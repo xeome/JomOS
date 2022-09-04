@@ -6,7 +6,7 @@ import utils
 import logging
 from rich.logging import RichHandler
 from rich import print
-
+from rich.panel import Panel
 
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -14,6 +14,11 @@ logging.basicConfig(
 )
 
 log = logging.getLogger("rich")
+
+DRYRUN = 1
+
+if DRYRUN:
+    log.info("DRYRUN mode is on")
 
 USERNAME = ("liveuser" if os.path.exists("/home/liveuser")
             else utils.term("whoami").replace("\n", ""))
@@ -26,8 +31,6 @@ PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
 
 SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
 VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
-
-DRYRUN = 1
 
 # TODO: add check for fstrim timers if ssd
 
@@ -43,23 +46,19 @@ COMMANDLIST = [
     "bash ./chpanelcolor.sh 0 0 0 255",
 ]
 
+FILELIST=[
+    "/etc/sysctl.d/99-JomOS-settings.conf",
+    "/etc/systemd/zram-generator.conf",
+    "/etc/udev/rules.d/ioscheduler.rules",
+    "/etc/makepkg.conf",
+    "/etc/mkinitcpio.conf",
+]
+
 ABOUT = """
-              ........              │|      JomOS alpha 0.1                                                     
-         ..................         │|  JomOS is a meta Linux distribution which allows users to mix-and-match
-      ........................      │|  well tested configurations and optimizations with little to no effort 
-     ..............;ooc........     │|   
-   ................;ddl..........   │|  JomOS integrates these configurations into one largely cohesive system.
-  .................;ddl...........  │|  
-  .................;ddl...........  │|  
-  .................;ddl...........  │|  
-  .................;ddl...........  │|  
-  .................;ddl...........  │|  
-  ........:oo:.....cddc...........  │|  
-   .......'lddl::coddl'..........   │|  
-     .......,:clllc:,..........     │|  
-       .......................      │|  
-         ..................         │|  
-              ........              │|
+JomOS is a meta Linux distribution which allows users to mix-and-match
+well tested configurations and optimizations with little to no effort 
+ 
+JomOS integrates these configurations into one largely cohesive system.
 
 [red]
 Continuing will:
@@ -67,7 +66,7 @@ Continuing will:
 [/red]
 """
 
-print(ABOUT)
+print(Panel.fit(ABOUT,title="JomOS alpha 0.1"))
 
 confirmation = input(
     'Please type "Confirm" without quotes at the prompt to continue: \n'
@@ -115,22 +114,17 @@ except Exception:
     log.error("Error when modifying configurations")
 
 else:
-    log.info(f"""FILES MODIFIED:
-            /etc/sysctl.d/99-JomOS-settings.conf
-            + vm.swappiness = {SWAPPINESS}
-            + vm.vfs_cache_pressure = {VFSCACHEPRESSURE}
-
-            /etc/makepkg.conf
-            + MAKEFLAGS="-j$(nproc)"
-        """)
-
+    log.info("file /etc/sysctl.d/99-JomOS-settings.conf modified")
+    log.info("file /etc/makepkg.conf modified")
 
 if DRYRUN != 1:
 
     utils.installdir("./etc", "/", "-D -o root -g root -m 644")
-
-    log.info("Configs installed")
-
+    
+    # TODO: not hardcode the file list
+    for file in FILELIST:
+        log.info("Modified file: " + file)
+    
     for command in COMMANDLIST:
         utils.term(command)
         log.info("Command executed: " + command)
