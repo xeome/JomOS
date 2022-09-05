@@ -2,12 +2,12 @@ import os
 
 
 def term(str):
-    """execute a terminal command"""
+    """Execute a terminal command"""
     return os.popen(str).read()
 
 
 def installdir(input, target, flags):
-    """install a directory with necessary permissions"""
+    """Install a directory with necessary permissions"""
     term(
         "find "
         + input
@@ -18,9 +18,13 @@ def installdir(input, target, flags):
         + '{}" \;'
     )
 
+def readfile(filepath):
+    """Read file and return its contents"""
+    with open(filepath, "r") as file:
+        return file.read()
 
 def replaceinfile(filepath, str, sub):
-    """replace string in file"""
+    """Replace string in file"""
     with open(filepath, "r") as file:
         filedata = file.read()
 

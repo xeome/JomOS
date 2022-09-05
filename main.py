@@ -46,13 +46,26 @@ COMMANDLIST = [
     "bash ./chpanelcolor.sh 0 0 0 255",
 ]
 
-FILELIST=[
+FILELIST = [
     "/etc/sysctl.d/99-JomOS-settings.conf",
     "/etc/systemd/zram-generator.conf",
     "/etc/udev/rules.d/ioscheduler.rules",
     "/etc/makepkg.conf",
     "/etc/mkinitcpio.conf",
 ]
+
+TWEAKLIST = [
+    f"vm.swappiness = {SWAPPINESS}",
+    f"vm.vfs_cache_pressure = {VFSCACHEPRESSURE}",
+    "vm.page-cluster = 0",
+    "vm.dirty_ratio = 10",
+    "vm.dirty_background_ratio = 5",
+    "net.core.default_qdisc = cake",
+    "net.ipv4.tcp_congestion_control = bbr2",
+    "net.ipv4.tcp_fastopen = 3",
+    "kernel.nmi_watchdog = 0"
+]
+
 
 ABOUT = """
 JomOS is a meta Linux distribution which allows users to mix-and-match
@@ -66,7 +79,7 @@ Continuing will:
 [/red]
 """
 
-print(Panel.fit(ABOUT,title="JomOS alpha 0.1"))
+print(Panel.fit(ABOUT, title="JomOS alpha 0.1"))
 
 confirmation = input(
     'Please type "Confirm" without quotes at the prompt to continue: \n'
@@ -112,22 +125,31 @@ try:
 except Exception:
     # TODO: proper error handling
     log.error("Error when modifying configurations")
-
 else:
-    log.info("file /etc/sysctl.d/99-JomOS-settings.conf modified")
-    log.info("file /etc/makepkg.conf modified")
+    log.info("File /etc/sysctl.d/99-JomOS-settings.conf modified")
+    log.info("File /etc/makepkg.conf modified")
 
 if DRYRUN != 1:
 
     utils.installdir("./etc", "/", "-D -o root -g root -m 644")
-    
+
     # TODO: not hardcode the file list
     for file in FILELIST:
-        log.info("Modified file: " + file)
-    
+        filecontents = utils.readfile(file)
+        if len(filecontents) < 2000:
+            log.info(f"""Installed file: {file}
+{filecontents}
+    """)
+        else:
+            log.info("Installed file: " + file +
+                     "\n(File too long to display)")
+
+    for tweak in TWEAKLIST:
+        log.info(tweak)
+
     for command in COMMANDLIST:
+        log.info("Executing command: " + command)
         utils.term(command)
-        log.info("Command executed: " + command)
 
     utils.replaceinfile(
         str(whiskermenupath),
