@@ -98,22 +98,23 @@ utils.term("cp /etc/makepkg.conf ./etc/makepkg.conf")
 
 # Modify configuration files
 try:
-    utils.replaceinfile(
-        "./etc/makepkg.conf",
-        "#MAKEFLAGS=\"-j2\"",
-        "MAKEFLAGS=\"-j$(nproc)\""
-    )
+    if not DRYRUN:
+        utils.replaceinfile(
+            "./etc/makepkg.conf",
+            "#MAKEFLAGS=\"-j2\"",
+            "MAKEFLAGS=\"-j$(nproc)\""
+        )
 
-    utils.replaceinfile("./etc/sysctl.d/99-JomOS-settings.conf",
-                        "vm.swappiness = 30",
-                        "vm.swappiness = " + str(SWAPPINESS)
-                        )
+        utils.replaceinfile("./etc/sysctl.d/99-JomOS-settings.conf",
+                            "vm.swappiness = 50",
+                            "vm.swappiness = " + str(SWAPPINESS)
+                            )
 
-    utils.replaceinfile(
-        "./etc/sysctl.d/99-JomOS-settings.conf",
-        "vm.vfs_cache_pressure = 50",
-        "vm.vfs_cache_pressure = " + str(VFSCACHEPRESSURE),
-    )
+        utils.replaceinfile(
+            "./etc/sysctl.d/99-JomOS-settings.conf",
+            "vm.vfs_cache_pressure = 50",
+            "vm.vfs_cache_pressure = " + str(VFSCACHEPRESSURE),
+        )
 
 except Exception:
     # TODO: proper error handling
