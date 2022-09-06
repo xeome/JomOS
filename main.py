@@ -10,7 +10,7 @@ from rich.panel import Panel
 
 FORMAT = "%(message)s"
 logging.basicConfig(
-    level="NOTSET", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
+    level="INFO", format=FORMAT, datefmt="[%X]", handlers=[RichHandler()]
 )
 
 log = logging.getLogger("rich")
@@ -32,19 +32,14 @@ PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
 SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
 VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
 
-# TODO: add check for fstrim timers if ssd
+V3_SUPPORT = utils.term("/lib/ld-linux-x86-64.so.2 --help | grep \"x86-64-v3 (supported, searched)\"").find("86-64-v3 (supported, searched)")
 
-COMMANDLIST = [
-    "yay -S --noconfirm zram-generator irqbalance",
-    "tar --use-compress-program=unzstd -xvf ./assets/themes.tar.zst",
-    "mkdir ~/.themes",
-    "cp -r ./themes/* ~/.themes",
-    'xfconf-query -c xsettings -p /Net/ThemeName -s "Fluent-dark"',
-    'xfconf-query -c xfwm4 -p /general/theme -s "Fluent-dark"',
-    "sudo cp ./assets/wallpaper.png /usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png",
-    "sudo cp ./assets/gigachad_small.png /usr/share/endeavouros/EndeavourOS-icon.png",
-    "bash ./chpanelcolor.sh 0 0 0 255",
-]
+# TODO: add check for fstrim timers if ssd
+# TODO: automatically add CachyOS repos
+
+GENERIC = utils.readfilelines("scripts/generic")
+THEMING = utils.readfilelines("scripts/theming")
+REPOS = utils.readfilelines("scripts/repos")
 
 FILELIST = [
     "/etc/sysctl.d/99-JomOS-settings.conf",
@@ -89,11 +84,9 @@ if confirmation != "Confirm":
     log.warning("Warning not copied exactly.")
     sys.exit()
 
-log.info(f"""USERNAME: "{USERNAME}"
-RAM AMOUNT: {PHYSMEMGB}
-CALCULATED SWAPPINESS: {SWAPPINESS}
-CALCULATED VFS_CACHE_PRESSURE: {VFSCACHEPRESSURE}
-""")
+log.info(
+    f"USERNAME: \"{USERNAME}\"\nRAM AMOUNT: {PHYSMEMGB}\nCALCULATED SWAPPINESS: {SWAPPINESS}\nCALCULATED VFS_CACHE_PRESSURE: {VFSCACHEPRESSURE}"
+    )
 
 
 whiskermenupath = utils.term(
@@ -129,27 +122,38 @@ else:
     log.info("File /etc/sysctl.d/99-JomOS-settings.conf modified")
     log.info("File /etc/makepkg.conf modified")
 
-if DRYRUN != 1:
+if V3_SUPPORT:
+    log.info("86-64-v3 (supported, searched)")
 
+if not DRYRUN:
     utils.installdir("./etc", "/", "-D -o root -g root -m 644")
 
     # TODO: not hardcode the file list
     for file in FILELIST:
         filecontents = utils.readfile(file)
+        # Check file length, dont show it if its longer than 2000 characters
         if len(filecontents) < 2000:
-            log.info(f"""Installed file: {file}
-{filecontents}
-    """)
+            log.info(f"Installed file: {file}\n{filecontents}")
         else:
             log.info("Installed file: " + file +
                      "\n(File too long to display)")
 
+    # Generic commands that arent specific to anything
+    for command in GENERIC:
+        log.info("Executing command: " + command)
+        utils.term(command)
+    # Commands for adding third party repositories
+    for command in REPOS:
+        log.info("Executing command: " + command)
+        utils.term(command)
+    # Commands for theming
+    for command in THEMING:
+        log.info("Executing command: " + command)
+        utils.term(command)
+
     for tweak in TWEAKLIST:
         log.info(tweak)
 
-    for command in COMMANDLIST:
-        log.info("Executing command: " + command)
-        utils.term(command)
 
     utils.replaceinfile(
         str(whiskermenupath),

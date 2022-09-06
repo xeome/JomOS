@@ -1,0 +1,8 @@
+tar --use-compress-program=unzstd -xvf ./assets/themes.tar.zst"
+mkdir ~/.themes"
+cp -r ./themes/* ~/.themes"
+xfconf-query -c xsettings -p /Net/ThemeName -s "Fluent-dark"
+xfconf-query -c xfwm4 -p /general/theme -s "Fluent-dark"
+sudo cp ./assets/wallpaper.png /usr/share/endeavouros/backgrounds/endeavouros-wallpaper.png"
+sudo cp ./assets/gigachad_small.png /usr/share/endeavouros/EndeavourOS-icon.png"
+bash ./chpanelcolor.sh 0 0 0 255"

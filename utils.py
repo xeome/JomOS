@@ -23,6 +23,13 @@ def readfile(filepath):
     with open(filepath, "r") as file:
         return file.read()
 
+def readfilelines(filepath):
+    """Read file and return its contents as lines"""
+    with open(filepath, "r") as file:
+        return file.readlines()
+
+
+
 def replaceinfile(filepath, str, sub):
     """Replace string in file"""
     with open(filepath, "r") as file:
