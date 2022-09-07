@@ -39,6 +39,7 @@ V3_SUPPORT = utils.term("/lib/ld-linux-x86-64.so.2 --help | grep \"x86-64-v3 (su
 
 GENERIC = utils.readfilelines("scripts/generic")
 THEMING = utils.readfilelines("scripts/theming")
+REPOSV3 = utils.readfilelines("scripts/repos-v3")
 REPOS = utils.readfilelines("scripts/repos")
 
 FILELIST = [
@@ -143,11 +144,18 @@ if not DRYRUN:
     for command in GENERIC:
         log.info("Executing command: " + command)
         utils.term(command)
-    # Commands for adding third party repositories
-    for command in REPOS:
-        log.info("Executing command: " + command)
-        utils.term(command)
-    # Commands for theming
+    
+    # Adding third party repositories
+    if V3_SUPPORT:
+        for command in REPOSV3:
+            log.info("Executing command: " + command)
+            utils.term(command)
+    else:
+        for command in REPOS:
+            log.info("Executing command: " + command)
+            utils.term(command)
+
+    # Theming
     for command in THEMING:
         log.info("Executing command: " + command)
         utils.term(command)

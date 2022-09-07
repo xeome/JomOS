@@ -26,7 +26,7 @@ def readfile(filepath):
 def readfilelines(filepath):
     """Read file and return its contents as lines"""
     with open(filepath, "r") as file:
-        return file.readlines()
+        return [x.strip() for x in file.readlines()]
 
 
 
