@@ -6,7 +6,7 @@ def term(str):
     return os.popen(str).read()
 
 
-def installdir(input, target, flags):
+def install_dir(input, target_path, flags):
     """Install a directory with necessary permissions"""
     term(
         "find "
@@ -14,28 +14,28 @@ def installdir(input, target, flags):
         + " -type f -exec sudo install "
         + flags
         + ' "{}" "'
-        + target
+        + target_path
         + '{}" \;'
     )
 
-def readfile(filepath):
+def read_file(file_path):
     """Read file and return its contents"""
-    with open(filepath, "r") as file:
+    with open(file_path, "r") as file:
         return file.read()
 
-def readfilelines(filepath):
+def read_file_lines(file_path):
     """Read file and return its contents as lines"""
-    with open(filepath, "r") as file:
+    with open(file_path, "r") as file:
         return [x.strip() for x in file.readlines()]
 
 
 
-def replaceinfile(filepath, str, sub):
+def replace_in_file(file_path, str, sub):
     """Replace string in file"""
-    with open(filepath, "r") as file:
+    with open(file_path, "r") as file:
         filedata = file.read()
 
     filedata = filedata.replace(str, sub)
 
-    with open(filepath, "w") as file:
+    with open(file_path, "w") as file:
         file.write(filedata)

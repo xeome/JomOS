@@ -1,1 +1,1 @@
-yay -S --noconfirm zram-generator irqbalance
+yay -S --noconfirm zram-generator irqbalance thorium-browser-bin
