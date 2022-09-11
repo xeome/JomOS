@@ -1,13 +1,11 @@
-from ctypes import util
-from dataclasses import replace
 import re
 import sys
 import os
 import logging
+import utils
 from rich.logging import RichHandler
 from rich import print
 from rich.panel import Panel
-import utils
 
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -31,7 +29,7 @@ USERNAME = ("liveuser" if os.path.exists("/home/liveuser")
 HOMEDIR = "/home/" + USERNAME
 PHYSMEMRAW = utils.term("grep MemTotal /proc/meminfo")
 
-# get ram amount in kb and convert to gb with floor division
+# Get ram amount in kb and convert to gb with floor division
 PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
 
 SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
@@ -41,20 +39,13 @@ V3_SUPPORT = utils.term(
     "/lib/ld-linux-x86-64.so.2 --help | grep \"x86-64-v3 (supported, searched)\"").find("86-64-v3 (supported, searched)")
 
 # TODO: add check for fstrim timers if ssd
-# TODO: automatically add CachyOS repos
+# TODO: add check for physical swap and zswap parameters
 
 GENERIC = utils.read_file_lines("scripts/generic")
 THEMING = utils.read_file_lines("scripts/theming")
 REPOSV3 = utils.read_file_lines("scripts/repos-v3")
 REPOS = utils.read_file_lines("scripts/repos")
 
-FILELIST = [
-    "/etc/sysctl.d/99-JomOS-settings.conf",
-    "/etc/systemd/zram-generator.conf",
-    "/etc/udev/rules.d/ioscheduler.rules",
-    "/etc/makepkg.conf",
-    "/etc/mkinitcpio.conf",
-]
 
 TWEAKLIST = [
     f"vm.swappiness = {SWAPPINESS}",
@@ -102,6 +93,8 @@ whiskermenupath = utils.term(
 utils.term("cp /etc/makepkg.conf ./etc/makepkg.conf")
 utils.term("cp /etc/pacman.conf ./etc/pacman.conf")
 utils.term("cp /etc/mkinitcpio.conf ./etc/mkinitcpio.conf")
+
+FILELIST = utils.returnfiles("./etc/")
 
 # Modify configuration files
 try:
@@ -151,6 +144,8 @@ except Exception:
 else:
     log.info("File /etc/sysctl.d/99-JomOS-settings.conf modified")
     log.info("File /etc/makepkg.conf modified")
+    log.info("File /etc/mkinitcpio.conf modified")
+    log.info("File /etc/pacman.conf modified")
 
 if V3_SUPPORT:
     log.info("86-64-v3 (supported, searched)")
@@ -158,7 +153,6 @@ if V3_SUPPORT:
 if not DRYRUN:
     utils.install_dir("./etc", "/", "-D -o root -g root -m 644")
 
-    # TODO: not hardcode the file list
     for file in FILELIST:
         filecontents = utils.read_file(file)
         # Check file length, dont show it if its longer than 2000 characters
@@ -192,8 +186,9 @@ if not DRYRUN:
     for tweak in TWEAKLIST:
         log.info(tweak)
 
-    utils.replace_in_file(
-        str(whiskermenupath),
-        "button-title=EndeavourOS",
-        "button-title=JomOS",
-    )
+    if whiskermenupath:
+        utils.replace_in_file(
+            str(whiskermenupath),
+            "button-title=EndeavourOS",
+            "button-title=JomOS",
+        )
