@@ -1,12 +1,13 @@
+from ctypes import util
 from dataclasses import replace
 import re
 import sys
 import os
-import utils
 import logging
 from rich.logging import RichHandler
 from rich import print
 from rich.panel import Panel
+import utils
 
 FORMAT = "%(message)s"
 logging.basicConfig(
@@ -15,12 +16,14 @@ logging.basicConfig(
 
 log = logging.getLogger("rich")
 
+# Options, TODO: make them a cli parameter
+
 DRYRUN = 1
+THIRDPARTYREPOS = 1
+THEMING = 1
 
 if DRYRUN:
     log.info("DRYRUN mode is on")
-
-thirdpartyrepos=1
 
 USERNAME = ("liveuser" if os.path.exists("/home/liveuser")
             else utils.term("whoami").replace("\n", ""))
@@ -65,7 +68,6 @@ TWEAKLIST = [
     "kernel.nmi_watchdog = 0"
 ]
 
-
 ABOUT = """
 JomOS is a meta Linux distribution which allows users to mix-and-match
 well tested configurations and optimizations with little to no effort 
@@ -99,6 +101,7 @@ whiskermenupath = utils.term(
 # Copy system configs for necessary modifications
 utils.term("cp /etc/makepkg.conf ./etc/makepkg.conf")
 utils.term("cp /etc/pacman.conf ./etc/pacman.conf")
+utils.term("cp /etc/mkinitcpio.conf ./etc/mkinitcpio.conf")
 
 # Modify configuration files
 try:
@@ -120,17 +123,26 @@ try:
             "vm.vfs_cache_pressure = " + str(VFSCACHEPRESSURE)
         )
 
-        if V3_SUPPORT and thirdpartyrepos:
+        mkinitcpio = utils.read_file("./etc/mkinitcpio.conf")
+        if mkinitcpio.find("COMPRESSION") == 0 and mkinitcpio.find("#COMPRESSION_OPTIONS") == 0:
+            mkinitcpio = re.sub("COMPRESSION=\"(.*?)\"",
+                                "COMPRESSION=\"zstd\"", str(mkinitcpio))
+            mkinitcpio.replace("#COMPRESSION_OPTIONS=()",
+                               "COMPRESSION_OPTIONS=(-2)")
+
+        utils.write_file("./etc/mkinitcpio.conf", mkinitcpio)
+
+        if V3_SUPPORT and THIRDPARTYREPOS:
             utils.replace_in_file(
-            "./etc/pacman.conf",
-            "[core]\nInclude = /etc/pacman.d/mirrorlist",
-            "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist"
+                "./etc/pacman.conf",
+                "[core]\nInclude = /etc/pacman.d/mirrorlist",
+                "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist"
             )
-        elif thirdpartyrepos:
+        elif THIRDPARTYREPOS:
             utils.replace_in_file(
-            "./etc/pacman.conf",
-            "[core]\nInclude = /etc/pacman.d/mirrorlist",
-            "[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist"
+                "./etc/pacman.conf",
+                "[core]\nInclude = /etc/pacman.d/mirrorlist",
+                "[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist"
             )
 
 except Exception:
@@ -162,19 +174,20 @@ if not DRYRUN:
         utils.term(command)
 
     # Adding third party repositories
-    if V3_SUPPORT and thirdpartyrepos:
+    if V3_SUPPORT and THIRDPARTYREPOS:
         for command in REPOSV3:
             log.info("Executing command: " + command)
             utils.term(command)
-    elif thirdpartyrepos:
+    elif THIRDPARTYREPOS:
         for command in REPOS:
             log.info("Executing command: " + command)
             utils.term(command)
 
     # Theming
-    for command in THEMING:
-        log.info("Executing command: " + command)
-        utils.term(command)
+    if THEMING:
+        for command in THEMING:
+            log.info("Executing command: " + command)
+            utils.term(command)
 
     for tweak in TWEAKLIST:
         log.info(tweak)
