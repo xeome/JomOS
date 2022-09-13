@@ -18,7 +18,7 @@ log = logging.getLogger("rich")
 
 DRYRUN = 1
 THIRDPARTYREPOS = 1
-THEMING = 1
+THEMING_ = 1
 
 if DRYRUN:
     log.info("DRYRUN mode is on")
@@ -178,7 +178,7 @@ if not DRYRUN:
             utils.term(command)
 
     # Theming
-    if THEMING:
+    if THEMING_:
         for command in THEMING:
             log.info("Executing command: " + command)
             utils.term(command)
@@ -186,7 +186,7 @@ if not DRYRUN:
     for tweak in TWEAKLIST:
         log.info(tweak)
 
-    if whiskermenupath:
+    if whiskermenupath and THEMING_:
         utils.replace_in_file(
             str(whiskermenupath),
             "button-title=EndeavourOS",
