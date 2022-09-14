@@ -33,12 +33,28 @@ PHYSMEMRAW = utils.term("grep MemTotal /proc/meminfo")
 PHYSMEMGB = int(re.sub("[^0-9]", "", PHYSMEMRAW)) // 1048576
 
 SWAPPINESS = min((200 // PHYSMEMGB) * 2, 150)
-VFSCACHEPRESSURE = max(min(SWAPPINESS, 125), 32)
+VFSCACHEPRESSURE = int(max(min(SWAPPINESS*1.25, 125), 32))
 
 V3_SUPPORT = utils.term(
     "/lib/ld-linux-x86-64.so.2 --help | grep \"x86-64-v3 (supported, searched)\"").find("86-64-v3 (supported, searched)")
 
-# TODO: add check for fstrim timers if ssd
+zram_state = utils.term("swapon -s")
+if zram_state.find("zram") == 0:
+    log.info("This system already has zram")
+elif zram_state.find("dev") == 0:
+    log.info("This system already has physical swap")
+else:
+    log.info("System has no swap")
+
+zswap_state = utils.term("cat /sys/module/zswap/parameters/enabled")
+log.info(zswap_state)
+
+if zswap_state == "N\n":
+    log.info("Zswap is disabled")
+else:
+    log.warning(
+        "Zswap is enabled, please disable Zswap if you want to use zram.")
+
 # TODO: add check for physical swap and zswap parameters
 
 GENERIC = utils.read_file_lines("scripts/generic")
@@ -151,6 +167,7 @@ if V3_SUPPORT:
     log.info("86-64-v3 (supported, searched)")
 
 if not DRYRUN:
+
     utils.install_dir("./etc", "/", "-D -o root -g root -m 644")
 
     for file in FILELIST:
