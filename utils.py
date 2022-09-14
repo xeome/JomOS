@@ -36,9 +36,9 @@ def write_file(file_path, file_data):
         file.write(file_data)
 
 
-def returnfiles(file_path):
+def return_files(file_path):
     lst = list()
-    for path, subdirs, files in os.walk(file_path):
+    for path, sub_dirs, files in os.walk(file_path):
         for name in files:
             lst.append(str(os.path.join(path, name)))
     return lst
@@ -47,9 +47,9 @@ def returnfiles(file_path):
 def replace_in_file(file_path, str, sub):
     """Replace string in file"""
     with open(file_path, "r") as file:
-        filedata = file.read()
+        file_data = file.read()
 
-    filedata = filedata.replace(str, sub)
+    file_data = file_data.replace(str, sub)
 
     with open(file_path, "w") as file:
-        file.write(filedata)
+        file.write(file_data)
