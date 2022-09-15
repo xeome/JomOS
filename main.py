@@ -19,16 +19,14 @@ log = logging.getLogger("rich")
 # Options, TODO: make them a cli parameter
 
 DRY_RUN = 1
-THIRD_PARTY_REPOS = 1
-THEMING_ = 1
+ENABLE_THIRD_PARTY_REPOS = 1
+ENABLE_THEMING = 1
 
 if DRY_RUN:
     log.info("DRYRUN mode is on")
 
 V3_SUPPORT = utils.term(
     "/lib/ld-linux-x86-64.so.2 --help | grep \"x86-64-v3 (supported, searched)\"").find("86-64-v3 (supported, searched)")
-
-# TODO: add check for physical swap and zswap parameters
 
 GENERIC = utils.read_file_lines("scripts/generic")
 THEMING = utils.read_file_lines("scripts/theming")
@@ -144,13 +142,13 @@ try:
 
         utils.write_file("./etc/mkinitcpio.conf", mkinitcpio)
 
-        if V3_SUPPORT and THIRD_PARTY_REPOS:
+        if V3_SUPPORT and ENABLE_THIRD_PARTY_REPOS:
             utils.replace_in_file(
                 "./etc/pacman.conf",
                 "[core]\nInclude = /etc/pacman.d/mirrorlist",
                 "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist"
             )
-        elif THIRD_PARTY_REPOS:
+        elif ENABLE_THIRD_PARTY_REPOS:
             utils.replace_in_file(
                 "./etc/pacman.conf",
                 "[core]\nInclude = /etc/pacman.d/mirrorlist",
@@ -188,17 +186,17 @@ if not DRY_RUN:
         utils.term(command)
 
     # Adding third party repositories
-    if V3_SUPPORT and THIRD_PARTY_REPOS:
+    if V3_SUPPORT and ENABLE_THIRD_PARTY_REPOS:
         for command in REPOS_V3:
             log.info("Executing command: " + command)
             utils.term(command)
-    elif THIRD_PARTY_REPOS:
+    elif ENABLE_THIRD_PARTY_REPOS:
         for command in REPOS:
             log.info("Executing command: " + command)
             utils.term(command)
 
     # Theming
-    if THEMING_:
+    if ENABLE_THEMING:
         for command in THEMING:
             log.info("Executing command: " + command)
             utils.term(command)
@@ -206,7 +204,7 @@ if not DRY_RUN:
     for tweak in TWEAK_LIST:
         log.info(tweak)
 
-    if whisker_menu_path and THEMING_:
+    if whisker_menu_path and ENABLE_THEMING:
         utils.replace_in_file(
             str(whisker_menu_path),
             "button-title=EndeavourOS",
