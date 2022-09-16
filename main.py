@@ -152,7 +152,7 @@ try:
             utils.replace_in_file(
                 "./etc/pacman.conf",
                 "[core]\nInclude = /etc/pacman.d/mirrorlist",
-                "[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist"
+                "[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]\nInclude = /etc/pacman.d/mirrorlist"
             )
 
 except Exception:
@@ -168,8 +168,6 @@ if V3_SUPPORT:
     log.info("86-64-v3 (supported, searched)")
 
 if not DRY_RUN:
-
-    utils.install_dir("./etc", "/", "-D -o root -g root -m 644")
 
     for file in FILE_LIST:
         file_contents = utils.read_file(file)
@@ -203,6 +201,8 @@ if not DRY_RUN:
 
     for tweak in TWEAK_LIST:
         log.info(tweak)
+
+    utils.install_dir("./etc", "/", "-D -o root -g root -m 644")
 
     if whisker_menu_path and ENABLE_THEMING:
         utils.replace_in_file(
