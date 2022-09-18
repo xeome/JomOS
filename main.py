@@ -17,12 +17,24 @@ logging.basicConfig(
 log = logging.getLogger("rich")
 
 # Options, TODO: make them a cli parameter
+configuration = {}
+configuration["DRY_RUN"] = 1
+configuration["THIRD_PARTY_REPOS"] = 1
+configuration["THEMING"] = 1
+utils.parse_arguments(
+    configuration,
+    {
+        "disable_repos": [
+            "THIRD_PARTY_REPOS",
+            0,
+            "disables usage of third party repos",
+        ],
+        "disable_theming": ["THEMING", 0, "disables theming of the OS"],
+        "enable_dry_run": ["DRY_RUN", 1, "does a dry run of the program"],
+    },
+)
 
-DRY_RUN = 1
-ENABLE_THIRD_PARTY_REPOS = 1
-ENABLE_THEMING = 1
-
-if DRY_RUN:
+if configuration["DRY_RUN"]:
     log.info("DRYRUN mode is on")
 
 V3_SUPPORT = utils.term(
@@ -119,7 +131,7 @@ FILE_LIST = utils.return_files("./etc/")
 
 # Modify configuration files
 try:
-    if not DRY_RUN:
+    if not configuration["DRY_RUN"]:
         utils.replace_in_file(
             "./etc/makepkg.conf", '#MAKEFLAGS="-j2"', 'MAKEFLAGS="-j$(nproc)"'
         )

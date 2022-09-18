@@ -1,4 +1,29 @@
 import os
+import sys
+import rich
+
+
+def parse_arguments(config, details):
+    arguments = sys.argv[1:]
+    for arg in arguments:
+        if arg in details:
+            lookup = details[arg]
+            config[lookup[0]] = lookup[1]
+        elif arg == "--h" or arg == "--help":
+            rich.print("usage: python main.py", end="")
+            for argument in details:
+                rich.print(f" [--{argument}]")
+            rich.print("\noptions:\n-h, --help\t show this help message and exit")
+            for argument, lookup in details.items():
+                rich.print(f"[--{argument}\t {lookup[2]}]")
+        else:
+            rich.print(f"incorrect argument {arg}\n")
+            rich.print("usage: python main.py", end="")
+            for argument in details:
+                rich.print(f" [--{argument}]")
+            rich.print("\noptions:\n-h, --help\t show this help message and exit")
+            for argument, lookup in details.items():
+                rich.print(f"[--{argument}\t {lookup[2]}]")
 
 
 def term(str):
