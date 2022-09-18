@@ -26,15 +26,19 @@ if DRY_RUN:
     log.info("DRYRUN mode is on")
 
 V3_SUPPORT = utils.term(
-    "/lib/ld-linux-x86-64.so.2 --help | grep \"x86-64-v3 (supported, searched)\"").find("86-64-v3 (supported, searched)")
+    '/lib/ld-linux-x86-64.so.2 --help | grep "x86-64-v3 (supported, searched)"'
+).find("86-64-v3 (supported, searched)")
 
 GENERIC = utils.read_file_lines("scripts/generic")
 THEMING = utils.read_file_lines("scripts/theming")
 REPOS_V3 = utils.read_file_lines("scripts/repos-v3")
 REPOS = utils.read_file_lines("scripts/repos")
 
-username = ("liveuser" if os.path.exists("/home/liveuser")
-            else utils.term("whoami").replace("\n", ""))
+username = (
+    "liveuser"
+    if os.path.exists("/home/liveuser")
+    else utils.term("whoami").replace("\n", "")
+)
 
 homedir = "/home/" + username
 phys_mem_raw = utils.term("grep MemTotal /proc/meminfo")
@@ -60,8 +64,7 @@ log.info(zswap_state)
 if zswap_state == "N\n":
     log.info("Zswap is disabled")
 else:
-    log.warning(
-        "Zswap is enabled, please disable Zswap if you want to use zram.")
+    log.warning("Zswap is enabled, please disable Zswap if you want to use zram.")
 
 
 TWEAK_LIST = [
@@ -73,7 +76,7 @@ TWEAK_LIST = [
     "net.core.default_qdisc = cake",
     "net.ipv4.tcp_congestion_control = bbr2",
     "net.ipv4.tcp_fastopen = 3",
-    "kernel.nmi_watchdog = 0"
+    "kernel.nmi_watchdog = 0",
 ]
 
 ABOUT = """
@@ -99,12 +102,13 @@ if confirmation != "Confirm":
     sys.exit()
 
 log.info(
-    f"USERNAME: \"{username}\"\nRAM AMOUNT: {phys_mem_gb}\nCALCULATED SWAPPINESS: {swappiness}\nCALCULATED "
+    f'USERNAME: "{username}"\nRAM AMOUNT: {phys_mem_gb}\nCALCULATED SWAPPINESS: {swappiness}\nCALCULATED '
     f"VFS_CACHE_PRESSURE: {vfs_cache_pressure} "
 )
 
 whisker_menu_path = utils.term(
-    "ls " + homedir + "/.config/xfce4/panel/whiskermenu-*.rc").replace("\n", "")
+    "ls " + homedir + "/.config/xfce4/panel/whiskermenu-*.rc"
+).replace("\n", "")
 
 # Copy system configs for necessary modifications
 utils.term("cp /etc/makepkg.conf ./etc/makepkg.conf")
@@ -117,28 +121,30 @@ FILE_LIST = utils.return_files("./etc/")
 try:
     if not DRY_RUN:
         utils.replace_in_file(
-            "./etc/makepkg.conf",
-            "#MAKEFLAGS=\"-j2\"",
-            "MAKEFLAGS=\"-j$(nproc)\""
+            "./etc/makepkg.conf", '#MAKEFLAGS="-j2"', 'MAKEFLAGS="-j$(nproc)"'
         )
 
-        utils.replace_in_file("./etc/sysctl.d/99-JomOS-settings.conf",
-                              "vm.swappiness = 50",
-                              "vm.swappiness = " + str(swappiness)
-                              )
+        utils.replace_in_file(
+            "./etc/sysctl.d/99-JomOS-settings.conf",
+            "vm.swappiness = 50",
+            "vm.swappiness = " + str(swappiness),
+        )
 
         utils.replace_in_file(
             "./etc/sysctl.d/99-JomOS-settings.conf",
             "vm.vfs_cache_pressure = 50",
-            "vm.vfs_cache_pressure = " + str(vfs_cache_pressure)
+            "vm.vfs_cache_pressure = " + str(vfs_cache_pressure),
         )
 
         mkinitcpio = utils.read_file("./etc/mkinitcpio.conf")
-        if mkinitcpio.find("COMPRESSION") == 0 and mkinitcpio.find("#COMPRESSION_OPTIONS") == 0:
-            mkinitcpio = re.sub("COMPRESSION=\"(.*?)\"",
-                                "COMPRESSION=\"zstd\"", str(mkinitcpio))
-            mkinitcpio.replace("#COMPRESSION_OPTIONS=()",
-                               "COMPRESSION_OPTIONS=(-2)")
+        if (
+            mkinitcpio.find("COMPRESSION") == 0
+            and mkinitcpio.find("#COMPRESSION_OPTIONS") == 0
+        ):
+            mkinitcpio = re.sub(
+                'COMPRESSION="(.*?)"', 'COMPRESSION="zstd"', str(mkinitcpio)
+            )
+            mkinitcpio.replace("#COMPRESSION_OPTIONS=()", "COMPRESSION_OPTIONS=(-2)")
 
         utils.write_file("./etc/mkinitcpio.conf", mkinitcpio)
 
@@ -146,13 +152,13 @@ try:
             utils.replace_in_file(
                 "./etc/pacman.conf",
                 "[core]\nInclude = /etc/pacman.d/mirrorlist",
-                "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist"
+                "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist",
             )
         elif ENABLE_THIRD_PARTY_REPOS:
             utils.replace_in_file(
                 "./etc/pacman.conf",
                 "[core]\nInclude = /etc/pacman.d/mirrorlist",
-                "[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]\nInclude = /etc/pacman.d/mirrorlist"
+                "[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]\nInclude = /etc/pacman.d/mirrorlist",
             )
 
 except Exception:
@@ -175,8 +181,7 @@ if not DRY_RUN:
         if len(file_contents) < 2000:
             log.info(f"Installed file: {file}\n{file_contents}")
         else:
-            log.info("Installed file: " + file +
-                     "\n(File too long to display)")
+            log.info("Installed file: " + file + "\n(File too long to display)")
 
     # Generic commands that aren't specific to anything
     for command in GENERIC:

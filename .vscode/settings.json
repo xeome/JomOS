@@ -1,3 +1,4 @@
 {
-    "workbench.colorTheme": "Dracula At Night"
+    "workbench.colorTheme": "Dracula At Night",
+    "python.formatting.provider": "black"
 }
