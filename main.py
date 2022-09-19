@@ -16,11 +16,11 @@ logging.basicConfig(
 
 log = logging.getLogger("rich")
 
-# Options, TODO: make them a cli parameter
 configuration = {}
 configuration["DRY_RUN"] = 1
 configuration["THIRD_PARTY_REPOS"] = 1
 configuration["THEMING"] = 1
+
 utils.parse_arguments(
     configuration,
     {
@@ -55,7 +55,7 @@ username = (
 homedir = "/home/" + username
 phys_mem_raw = utils.term("grep MemTotal /proc/meminfo")
 
-# Get ram amount in kb and convert to GiB and round 
+# Get ram amount in kb and convert to GiB and round
 phys_mem_gb = round(int(re.sub("[^0-9]", "", phys_mem_raw)) / 1048576)
 
 swappiness = min((200 // phys_mem_gb) * 2, 150)
@@ -163,7 +163,7 @@ try:
             utils.replace_in_file(
                 "./etc/pacman.conf",
                 "[core]\nInclude = /etc/pacman.d/mirrorlist",
-                "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist",
+                "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]\nInclude = /etc/pacman.d/mirrorlist",
             )
             utils.replace_in_file(
                 "./etc/pacman.conf",
@@ -181,10 +181,10 @@ except Exception:
     # TODO: proper error handling
     log.error("Error when modifying configurations")
 else:
-    log.info("File /etc/sysctl.d/99-JomOS-settings.conf modified")
-    log.info("File /etc/makepkg.conf modified")
-    log.info("File /etc/mkinitcpio.conf modified")
-    log.info("File /etc/pacman.conf modified")
+    log.info("File ./etc/sysctl.d/99-JomOS-settings.conf modified")
+    log.info("File ./etc/makepkg.conf modified")
+    log.info("File ./etc/mkinitcpio.conf modified")
+    log.info("File ./etc/pacman.conf modified")
 
 if V3_SUPPORT:
     log.info("86-64-v3 (supported, searched)")
@@ -219,15 +219,16 @@ if not configuration["DRY_RUN"]:
         for command in THEMING:
             log.info("Executing command: " + command)
             utils.term(command)
+        if whisker_menu_path:
+            utils.replace_in_file(
+                str(whisker_menu_path),
+                "button-title=EndeavourOS",
+                "button-title=JomOS",
+            )
 
     for tweak in TWEAK_LIST:
         log.info(tweak)
 
     utils.install_dir("./etc", "/", "-D -o root -g root -m 644")
 
-    if whisker_menu_path and configuration["THEMING"]:
-        utils.replace_in_file(
-            str(whisker_menu_path),
-            "button-title=EndeavourOS",
-            "button-title=JomOS",
-        )
+    log.info("Please run sudo pacman -Syyu and reboot to complete installation.")
