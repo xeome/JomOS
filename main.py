@@ -39,7 +39,7 @@ if configuration["DRY_RUN"]:
 
 V3_SUPPORT = utils.term(
     '/lib/ld-linux-x86-64.so.2 --help | grep "x86-64-v3 (supported, searched)"'
-).find("86-64-v3 (supported, searched)")
+)
 
 GENERIC = utils.read_file_lines("scripts/generic")
 THEMING = utils.read_file_lines("scripts/theming")
@@ -55,8 +55,8 @@ username = (
 homedir = "/home/" + username
 phys_mem_raw = utils.term("grep MemTotal /proc/meminfo")
 
-# Get ram amount in kb and convert to gb with floor division
-phys_mem_gb = int(re.sub("[^0-9]", "", phys_mem_raw)) // 1048576
+# Get ram amount in kb and convert to GiB and round 
+phys_mem_gb = round(int(re.sub("[^0-9]", "", phys_mem_raw)) / 1048576)
 
 swappiness = min((200 // phys_mem_gb) * 2, 150)
 vfs_cache_pressure = int(max(min(swappiness * 1.25, 125), 32))
@@ -71,7 +71,6 @@ else:
     log.info("System has no swap")
 
 zswap_state = utils.term("cat /sys/module/zswap/parameters/enabled")
-log.info(zswap_state)
 
 if zswap_state == "N\n":
     log.info("Zswap is disabled")
@@ -164,7 +163,12 @@ try:
             utils.replace_in_file(
                 "./etc/pacman.conf",
                 "[core]\nInclude = /etc/pacman.d/mirrorlist",
-                "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist",
+                "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachyos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist",
+            )
+            utils.replace_in_file(
+                "./etc/pacman.conf",
+                "Architecture = auto",
+                "Architecture = x86_64 x86_64_v3",
             )
         elif configuration["THIRD_PARTY_REPOS"]:
             utils.replace_in_file(
