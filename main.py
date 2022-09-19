@@ -201,11 +201,11 @@ if not configuration["DRY_RUN"]:
         utils.term(command)
 
     # Adding third party repositories
-    if V3_SUPPORT and ENABLE_THIRD_PARTY_REPOS:
+    if V3_SUPPORT and configuration["THIRD_PARTY_REPOS"]:
         for command in REPOS_V3:
             log.info("Executing command: " + command)
             utils.term(command)
-    elif ENABLE_THIRD_PARTY_REPOS:
+    elif configuration["THIRD_PARTY_REPOS"]:
         for command in REPOS:
             log.info("Executing command: " + command)
             utils.term(command)
