@@ -160,13 +160,13 @@ try:
 
         utils.write_file("./etc/mkinitcpio.conf", mkinitcpio)
 
-        if V3_SUPPORT and ENABLE_THIRD_PARTY_REPOS:
+        if V3_SUPPORT and configuration["THIRD_PARTY_REPOS"]:
             utils.replace_in_file(
                 "./etc/pacman.conf",
                 "[core]\nInclude = /etc/pacman.d/mirrorlist",
                 "[cachyos-v3]\nInclude = /etc/pacman.d/cachyos-v3-mirrorlist\n[cachyos]\nInclude = /etc/pacman.d/cachos-mirrorlist\n\n[core]Include = /etc/pacman.d/mirrorlist",
             )
-        elif ENABLE_THIRD_PARTY_REPOS:
+        elif configuration["THIRD_PARTY_REPOS"]:
             utils.replace_in_file(
                 "./etc/pacman.conf",
                 "[core]\nInclude = /etc/pacman.d/mirrorlist",
@@ -185,7 +185,7 @@ else:
 if V3_SUPPORT:
     log.info("86-64-v3 (supported, searched)")
 
-if not DRY_RUN:
+if not configuration["DRY_RUN"]:
 
     for file in FILE_LIST:
         file_contents = utils.read_file(file)
@@ -211,7 +211,7 @@ if not DRY_RUN:
             utils.term(command)
 
     # Theming
-    if ENABLE_THEMING:
+    if configuration["THEMING"]:
         for command in THEMING:
             log.info("Executing command: " + command)
             utils.term(command)
@@ -221,7 +221,7 @@ if not DRY_RUN:
 
     utils.install_dir("./etc", "/", "-D -o root -g root -m 644")
 
-    if whisker_menu_path and ENABLE_THEMING:
+    if whisker_menu_path and configuration["THEMING"]:
         utils.replace_in_file(
             str(whisker_menu_path),
             "button-title=EndeavourOS",
