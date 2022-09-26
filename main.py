@@ -231,4 +231,4 @@ if not configuration["DRY_RUN"]:
 
     utils.install_dir("./etc", "/", "-D -o root -g root -m 644")
 
-    log.info("Please run sudo pacman -Syyu and reboot to complete installation.")
+    log.info("Please run sudo pacman -Syuu and reboot to complete installation.")
