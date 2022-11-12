@@ -63,9 +63,9 @@ vfs_cache_pressure = int(max(min(swappiness * 1.25, 125), 32))
 
 
 zram_state = utils.term("swapon -s")
-if zram_state.find("zram") == 0:
+if zram_state.find("zram") != -1:
     log.info("This system already has zram")
-elif zram_state.find("dev") == 0:
+elif zram_state.find("dev") != -1:
     log.info("This system already has physical swap")
 else:
     log.info("System has no swap")
