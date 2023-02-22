@@ -3,7 +3,6 @@ import re
 import sys
 import rich
 import logging
-import getpass
 
 from rich.logging import RichHandler
 from rich.panel import Panel
@@ -11,6 +10,7 @@ from rich.panel import Panel
 from rich import print
 
 import tweaks
+
 
 def setup_logging():
     FORMAT = "%(message)s"
@@ -107,27 +107,6 @@ def append_to_file(file_path, str):
         file.write(str)
 
 
-def parse_cli_arguments():
-    configuration = {
-        "DRY_RUN": 1,
-        "THIRD_PARTY_REPOS": 1,
-        "THEMING": 1,
-    }
-
-    cli_args = {
-        "disable_repos": [
-            "THIRD_PARTY_REPOS",
-            0,
-            "disables usage of third party repos",
-        ],
-        "disable_theming": ["THEMING", 0, "disables theming of the OS"],
-        "enable_dry_run": ["DRY_RUN", 1, "does a dry run of the program"],
-    }
-
-    parse_arguments(configuration, cli_args)
-
-    return configuration
-
 def get_zram_state():
     zram_state = term("swapon -s")
     if zram_state.find("zram") != -1:
@@ -180,38 +159,38 @@ def copy_configs():
 # Modify configuration files
 def modify_configs():
     try:
-    # Use all cores for makepkg
+        # Use all cores for makepkg
         replace_in_file(
-        "./etc/makepkg.conf", '#MAKEFLAGS="-j2"', 'MAKEFLAGS="-j$(nproc)"'
-    )
+            "./etc/makepkg.conf", '#MAKEFLAGS="-j2"', 'MAKEFLAGS="-j$(nproc)"'
+        )
 
-    # Clear and Add header to 99-JomOS-settings.conf
+        # Clear and Add header to 99-JomOS-settings.conf
         write_file("./etc/sysctl.d/99-JomOS-settings.conf", "")
         write_file(
-        "./etc/sysctl.d/99-JomOS-settings.conf",
-        "# This config file contains tweaks from JomOS and CachyOS\n\n",
-    )
+            "./etc/sysctl.d/99-JomOS-settings.conf",
+            "# This config file contains tweaks from JomOS and CachyOS\n\n",
+        )
 
-    # Apply tweaks from SYSCTL_TWEAK_LIST
+        # Apply tweaks from SYSCTL_TWEAK_LIST
         for tweak in tweaks.SYSCTL_TWEAK_LIST:
             append_to_file("./etc/sysctl.d/99-JomOS-settings.conf", tweak + "\n")
             log.info(f"Added tweak: {tweak}")
 
-    # Edit mkinitcpio.conf to use zstd compression and compression level 2
+        # Edit mkinitcpio.conf to use zstd compression and compression level 2
         mkinitcpio = read_file("./etc/mkinitcpio.conf")
         if (
-        mkinitcpio.find("COMPRESSION") == 0
-        and mkinitcpio.find("#COMPRESSION_OPTIONS") == 0
-    ):
+            mkinitcpio.find("COMPRESSION") == 0
+            and mkinitcpio.find("#COMPRESSION_OPTIONS") == 0
+        ):
             mkinitcpio = re.sub(
-            'COMPRESSION="(.*?)"', 'COMPRESSION="zstd"', str(mkinitcpio)
-        )
+                'COMPRESSION="(.*?)"', 'COMPRESSION="zstd"', str(mkinitcpio)
+            )
             mkinitcpio.replace("#COMPRESSION_OPTIONS=()", "COMPRESSION_OPTIONS=(-2)")
 
         write_file("./etc/mkinitcpio.conf", mkinitcpio)
 
     except Exception:
-    # TODO: proper error handling
+        # TODO: proper error handling
         log.error("Error when modifying configurations")
     else:
         log.info("File ./etc/sysctl.d/99-JomOS-settings.conf modified")
@@ -225,37 +204,37 @@ def apply_tweaks(configuration, GENERIC, THEMING, REPOS, system_info):
         FILE_LIST = return_files("./etc/")
         for file in FILE_LIST:
             file_contents = read_file(file)
-        # Check file length, don't show it if it's longer than 2000 characters
+            # Check file length, don't show it if it's longer than 2000 characters
             if len(file_contents) < 2000:
                 log.info(f"Installed file: {file}\n{file_contents}")
             else:
                 log.info("Installed file: " + file + "\n(File too long to display)")
 
-    # Generic commands that aren't specific to anything
+        # Generic commands that aren't specific to anything
         for command in GENERIC:
             log.info("Executing command: " + command)
             term(command)
 
-    # Adding third party repositories
+        # Adding third party repositories
         if configuration["THIRD_PARTY_REPOS"]:
             for command in REPOS:
                 log.info("Executing command: " + command)
                 term(command)
 
-    # Theming
+        # Theming
         if configuration["THEMING"]:
             for command in THEMING:
                 log.info("Executing command: " + command)
                 term(command)
             whisker_menu_path = term(
-            "ls " + system_info["homedir"] + "/.config/xfce4/panel/whiskermenu-*.rc"
-        ).replace("\n", "")
+                "ls " + system_info["homedir"] + "/.config/xfce4/panel/whiskermenu-*.rc"
+            ).replace("\n", "")
             if whisker_menu_path:
                 replace_in_file(
-                str(whisker_menu_path),
-                "button-title=EndeavourOS",
-                "button-title=JomOS",
-            )
+                    str(whisker_menu_path),
+                    "button-title=EndeavourOS",
+                    "button-title=JomOS",
+                )
 
         for tweak in tweaks.SYSCTL_TWEAK_LIST:
             log.info(tweak)

@@ -1,10 +1,11 @@
 import utils
 import tweaks
+import cfg
 
-configuration = utils.parse_cli_arguments()
+utils.parse_arguments(cfg.configuration, cfg.cli_args)
 
 # Check if DRYRUN mode is on
-if configuration["DRY_RUN"]:
+if cfg.configuration["DRY_RUN"]:
     utils.log.info("DRYRUN mode is on")
 
 # Read files
@@ -31,4 +32,4 @@ utils.copy_configs()
 utils.modify_configs()
 
 # Apply tweaks if not in DRYRUN mode and according to configuration
-utils.apply_tweaks(configuration, GENERIC, THEMING, REPOS, system_info)
+utils.apply_tweaks(cfg.configuration, GENERIC, THEMING, REPOS, system_info)
