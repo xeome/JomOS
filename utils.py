@@ -6,7 +6,11 @@ import logging
 import getpass
 
 from rich.logging import RichHandler
+from rich.panel import Panel
 
+from rich import print
+
+import tweaks
 
 def setup_logging():
     FORMAT = "%(message)s"
@@ -15,6 +19,7 @@ def setup_logging():
     )
 
     return logging.getLogger("rich")
+
 
 log = setup_logging()
 
@@ -102,7 +107,6 @@ def append_to_file(file_path, str):
         file.write(str)
 
 
-
 def parse_cli_arguments():
     configuration = {
         "DRY_RUN": 1,
@@ -124,27 +128,6 @@ def parse_cli_arguments():
 
     return configuration
 
-
-def get_system_info():
-    username = "liveuser" if os.path.exists("/home/liveuser") else getpass.getuser()
-    homedir = "/home/" + username
-
-    system_info = {
-        "username": username,
-        "homedir": homedir,
-        "phys_mem_raw": term("grep MemTotal /proc/meminfo"),
-    }
-    system_info["phys_mem_gb"] = round(
-        int(re.sub("[^0-9]", "", system_info["phys_mem_raw"])) / 1048576
-    )
-    system_info["swappiness"] = min((200 // system_info["phys_mem_gb"]) * 2, 150)
-    system_info["vfs_cache_pressure"] = int(
-        max(min(system_info["swappiness"] * 1.25, 125), 32)
-    )
-
-    return system_info
-
-
 def get_zram_state():
     zram_state = term("swapon -s")
     if zram_state.find("zram") != -1:
@@ -155,6 +138,7 @@ def get_zram_state():
         log.info("System has no swap")
     return zram_state
 
+
 def get_zswap_state():
     zswap_state = term("cat /sys/module/zswap/parameters/enabled")
     if zswap_state == "N\n":
@@ -162,3 +146,120 @@ def get_zswap_state():
     else:
         log.warning("Zswap is enabled, please disable Zswap if you want to use zram.")
     return zswap_state
+
+
+def confirm_to_proceed():
+    ABOUT = """
+JomOS is a meta Linux distribution which allows users to mix-and-match
+well tested configurations and optimizations with little to no effort 
+JomOS integrates these configurations into one largely cohesive system.
+[red]
+Continuing will:
+- Convert existing installation into JomOS
+[/red]
+"""
+
+    print(Panel.fit(ABOUT, title="JomOS alpha 0.1"))
+
+    confirmation = input(
+        'Please type "Confirm" without quotes at the prompt to continue: \n'
+    )
+
+    if confirmation != "Confirm":
+        log.warning("Warning not copied exactly.")
+        sys.exit()
+
+
+# Copy system configs for necessary modifications
+def copy_configs():
+    term("cp /etc/makepkg.conf ./etc/makepkg.conf")
+    term("cp /etc/pacman.conf ./etc/pacman.conf")
+    term("cp /etc/mkinitcpio.conf ./etc/mkinitcpio.conf")
+
+
+# Modify configuration files
+def modify_configs():
+    try:
+    # Use all cores for makepkg
+        replace_in_file(
+        "./etc/makepkg.conf", '#MAKEFLAGS="-j2"', 'MAKEFLAGS="-j$(nproc)"'
+    )
+
+    # Clear and Add header to 99-JomOS-settings.conf
+        write_file("./etc/sysctl.d/99-JomOS-settings.conf", "")
+        write_file(
+        "./etc/sysctl.d/99-JomOS-settings.conf",
+        "# This config file contains tweaks from JomOS and CachyOS\n\n",
+    )
+
+    # Apply tweaks from SYSCTL_TWEAK_LIST
+        for tweak in tweaks.SYSCTL_TWEAK_LIST:
+            append_to_file("./etc/sysctl.d/99-JomOS-settings.conf", tweak + "\n")
+            log.info(f"Added tweak: {tweak}")
+
+    # Edit mkinitcpio.conf to use zstd compression and compression level 2
+        mkinitcpio = read_file("./etc/mkinitcpio.conf")
+        if (
+        mkinitcpio.find("COMPRESSION") == 0
+        and mkinitcpio.find("#COMPRESSION_OPTIONS") == 0
+    ):
+            mkinitcpio = re.sub(
+            'COMPRESSION="(.*?)"', 'COMPRESSION="zstd"', str(mkinitcpio)
+        )
+            mkinitcpio.replace("#COMPRESSION_OPTIONS=()", "COMPRESSION_OPTIONS=(-2)")
+
+        write_file("./etc/mkinitcpio.conf", mkinitcpio)
+
+    except Exception:
+    # TODO: proper error handling
+        log.error("Error when modifying configurations")
+    else:
+        log.info("File ./etc/sysctl.d/99-JomOS-settings.conf modified")
+        log.info("File ./etc/makepkg.conf modified")
+        log.info("File ./etc/mkinitcpio.conf modified")
+        log.info("File ./etc/pacman.conf modified")
+
+
+def apply_tweaks(configuration, GENERIC, THEMING, REPOS, system_info):
+    if not configuration["DRY_RUN"]:
+        FILE_LIST = return_files("./etc/")
+        for file in FILE_LIST:
+            file_contents = read_file(file)
+        # Check file length, don't show it if it's longer than 2000 characters
+            if len(file_contents) < 2000:
+                log.info(f"Installed file: {file}\n{file_contents}")
+            else:
+                log.info("Installed file: " + file + "\n(File too long to display)")
+
+    # Generic commands that aren't specific to anything
+        for command in GENERIC:
+            log.info("Executing command: " + command)
+            term(command)
+
+    # Adding third party repositories
+        if configuration["THIRD_PARTY_REPOS"]:
+            for command in REPOS:
+                log.info("Executing command: " + command)
+                term(command)
+
+    # Theming
+        if configuration["THEMING"]:
+            for command in THEMING:
+                log.info("Executing command: " + command)
+                term(command)
+            whisker_menu_path = term(
+            "ls " + system_info["homedir"] + "/.config/xfce4/panel/whiskermenu-*.rc"
+        ).replace("\n", "")
+            if whisker_menu_path:
+                replace_in_file(
+                str(whisker_menu_path),
+                "button-title=EndeavourOS",
+                "button-title=JomOS",
+            )
+
+        for tweak in tweaks.SYSCTL_TWEAK_LIST:
+            log.info(tweak)
+
+        install_dir("./etc", "/", "-D -o root -g root -m 644")
+
+        log.info("Please run sudo pacman -Syuu and reboot to complete installation.")
