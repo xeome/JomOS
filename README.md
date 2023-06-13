@@ -1,3 +1,9 @@
+# Discontinuation Notice: JomOS
+
+I regret to inform you that JomOS will be discontinued. Unfortunately, I'm unable to continue maintaining the project due to time constraints.
+
+I apologize for any inconvenience caused by this discontinuation. Thank you for your understanding.
+
 # JomOS
 
 JomOS is a meta Linux distribution which allows users to mix-and-match
